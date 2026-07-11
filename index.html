@@ -273,6 +273,21 @@
   </div>
 </div>
 
+<!-- 家族に送るときの手順案内 -->
+<div id="share-person-overlay" class="modal-bg hidden">
+  <div class="modal">
+    <p style="font-size:1.05rem; font-weight:700; margin-bottom:10px;">家族に送るときの流れ</p>
+    <div style="font-size:0.92rem; text-align:left; margin-bottom:14px; line-height:1.8;">
+      ① 下のボタンでファイルを作り、LINEやメールで送ります<br>
+      ② 受け取った人は、ファイルを<strong>開かずに</strong>「共有ボタン→ファイルに保存」で保存します<br>
+      ③ かぞくカルテの「せってい」→「<strong>保存ファイルから戻す</strong>」で、保存したファイルを選びます<br>
+      <span style="color:var(--sub); font-size:0.85rem;">※受け取る人が、先にかぞくカルテをホーム画面に追加しておく必要があります。このアプリのアドレスもいっしょに送ってあげてください。<br>※ファイルは開いても中身は読めない形式です。開けなくても問題ありません。</span>
+    </div>
+    <button type="button" class="btn primary" id="share-person-go">ファイルを作って送る</button>
+    <button type="button" class="btn ghost" id="share-person-cancel">やめる</button>
+  </div>
+</div>
+
 <!-- ===== 記入 ===== -->
 <main id="view-edit" class="hidden">
   <div id="a2hs-note" class="form-note hidden" style="background:#FFF6E8; border:1px solid #F0D9B4; color:var(--ink);">
@@ -304,7 +319,7 @@
     <p>記録は<strong>この端末の中だけ</strong>に保存されています。外部に送信されることはありません。スマホの故障や機種変更にそなえて、ときどき保存ファイルを作っておくと安心です。</p>
     <button type="button" class="btn primary" id="btn-backup">保存ファイルを作る</button>
     <button type="button" class="btn ghost" id="btn-restore">保存ファイルから戻す</button>
-    <input type="file" id="restore-file" accept=".json,application/json" class="hidden">
+    <input type="file" id="restore-file" class="hidden">
     <p style="margin-top:10px; font-size:0.82rem;">戻すときは、いちばん新しい日付のファイルを選んでください。</p>
   </div>
 
@@ -316,7 +331,7 @@
       ・アレルギーの情報は、記録があっても医療者から口頭で再確認されます。<br>
       ・記録が外部に送信されることはありません。すべてこの端末の中だけに保存されます。
     </p>
-    <div class="version">かぞくカルテ v0.2.1（試作版）</div>
+    <div class="version">かぞくカルテ v0.2.2（試作版）</div>
   </div>
 </main>
 
@@ -340,7 +355,7 @@
   'use strict';
 
   var STORAGE_KEY = 'kazokukarute_data_v1';
-  var APP_VERSION = '0.2.1';
+  var APP_VERSION = '0.2.2';
   var RECENT_STALE_DAYS = 7;
 
   /* =====================================================
@@ -928,17 +943,19 @@
   });
 
   /* ---------- ファイルの書き出し（共通） ---------- */
-  function exportJSON(json, fileName) {
+  function compactDate() { return todayKey().replace(/-/g, ''); }
+  function exportJSON(json, fileName, mime) {
+    var type = mime || 'application/json';
     if (isStandalone() && navigator.canShare) {
       try {
-        var file = new File([json], fileName, { type: 'application/json' });
+        var file = new File([json], fileName, { type: type });
         if (navigator.canShare({ files: [file] })) {
           navigator.share({ files: [file], title: fileName }).catch(function () {});
           return;
         }
       } catch (e) {}
     }
-    var blob = new Blob([json], { type: 'application/json' });
+    var blob = new Blob([json], { type: type });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
@@ -952,7 +969,7 @@
   /* ---------- バックアップ・復元・家族への共有 ---------- */
   document.getElementById('btn-backup').addEventListener('click', function () {
     try {
-      exportJSON(JSON.stringify(state, null, 2), 'かぞくカルテ_バックアップ_' + todayKey() + '.json');
+      exportJSON(JSON.stringify(state, null, 2), 'かぞくカルテ_バックアップ_' + compactDate() + '.json');
       state.lastBackup = todayKey();
       save();
       renderNotices();
@@ -961,10 +978,23 @@
     }
   });
   document.getElementById('btn-share-person').addEventListener('click', function () {
+    document.getElementById('share-person-overlay').classList.remove('hidden');
+  });
+  document.getElementById('share-person-cancel').addEventListener('click', function () {
+    document.getElementById('share-person-overlay').classList.add('hidden');
+  });
+  document.getElementById('share-person-go').addEventListener('click', function () {
+    document.getElementById('share-person-overlay').classList.add('hidden');
     var p = person();
     var pname = (p.data.name && p.data.name.trim()) || '名前未記入';
     var payload = { kazokuShare: true, appVersion: APP_VERSION, person: p };
-    exportJSON(JSON.stringify(payload, null, 2), 'かぞくカルテ_' + pname + 'の情報_' + todayKey() + '.json');
+    try {
+      // .kazoku形式：iPhoneがプレビューできない専用形式にすることで、
+      // 日付の自動検出（カレンダー画面の誤発動）を防ぐ
+      exportJSON(JSON.stringify(payload, null, 2), 'かぞくカルテ_' + pname + 'の情報_' + compactDate() + '.kazoku', 'application/octet-stream');
+    } catch (e) {
+      alert('ファイルを作れませんでした。ブラウザ（Safariなど）で開いてお試しください。');
+    }
   });
   document.getElementById('btn-restore').addEventListener('click', function () {
     document.getElementById('restore-file').click();
