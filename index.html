@@ -281,7 +281,7 @@
       ① 下のボタンでファイルを作り、LINEやメールで送ります<br>
       ② 受け取った人は、ファイルを<strong>開かずに</strong>「共有ボタン→ファイルに保存」で保存します<br>
       ③ かぞくカルテの「せってい」→「<strong>保存ファイルから戻す</strong>」で、保存したファイルを選びます<br>
-      <span style="color:var(--sub); font-size:0.85rem;">※受け取る人が、先にかぞくカルテをホーム画面に追加しておく必要があります。このアプリのアドレスもいっしょに送ってあげてください。<br>※ファイルは開いても中身は読めない形式です。開けなくても問題ありません。</span>
+      <span style="color:var(--sub); font-size:0.85rem;">※受け取る人が、先にかぞくカルテをホーム画面に追加しておく必要があります。このアプリのアドレスもいっしょに送ってあげてください。<br>※ファイルをタップすると文字が並んだ画面が出ることがありますが、読む必要はありません。閉じて「ファイルに保存」に進んでください。</span>
     </div>
     <button type="button" class="btn primary" id="share-person-go">ファイルを作って送る</button>
     <button type="button" class="btn ghost" id="share-person-cancel">やめる</button>
@@ -331,7 +331,7 @@
       ・アレルギーの情報は、記録があっても医療者から口頭で再確認されます。<br>
       ・記録が外部に送信されることはありません。すべてこの端末の中だけに保存されます。
     </p>
-    <div class="version">かぞくカルテ v0.2.2（試作版）</div>
+    <div class="version">かぞくカルテ v0.2.3（試作版）</div>
   </div>
 </main>
 
@@ -355,7 +355,7 @@
   'use strict';
 
   var STORAGE_KEY = 'kazokukarute_data_v1';
-  var APP_VERSION = '0.2.2';
+  var APP_VERSION = '0.2.3';
   var RECENT_STALE_DAYS = 7;
 
   /* =====================================================
@@ -989,9 +989,9 @@
     var pname = (p.data.name && p.data.name.trim()) || '名前未記入';
     var payload = { kazokuShare: true, appVersion: APP_VERSION, person: p };
     try {
-      // .kazoku形式：iPhoneがプレビューできない専用形式にすることで、
-      // 日付の自動検出（カレンダー画面の誤発動）を防ぐ
-      exportJSON(JSON.stringify(payload, null, 2), 'かぞくカルテ_' + pname + 'の情報_' + compactDate() + '.kazoku', 'application/octet-stream');
+      // ファイル名に日付を入れない：LINE上で日付が青いリンクになり、
+      // カレンダー画面が誤って開くのを防ぐため
+      exportJSON(JSON.stringify(payload, null, 2), 'かぞくカルテ_' + pname + 'の情報.json');
     } catch (e) {
       alert('ファイルを作れませんでした。ブラウザ（Safariなど）で開いてお試しください。');
     }
