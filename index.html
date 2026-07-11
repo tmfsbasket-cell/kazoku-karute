@@ -266,7 +266,7 @@
       ② プリンタがなくても大丈夫です<br>
       <strong>iPhone</strong>：印刷画面の共有ボタンから「<strong>PDFとして保存</strong>」や「ファイルに保存」を選べます<br>
       <strong>Android</strong>：プリンタ選択で「<strong>PDF形式で保存</strong>」を選べます<br>
-      <span style="color:var(--sub); font-size:0.85rem;">※画面がひらかない場合は、Safariなどのブラウザで開き直すか、スクリーンショットをご利用ください。</span>
+      <span style="color:var(--sub); font-size:0.85rem;">※画面がひらかない場合は、SafariやChromeなどのブラウザで開き直すか、スクリーンショットをご利用ください。</span>
     </div>
     <button type="button" class="btn primary" id="print-go">印刷の画面をひらく</button>
     <button type="button" class="btn ghost" id="print-cancel">やめる</button>
@@ -279,9 +279,13 @@
     <p style="font-size:1.05rem; font-weight:700; margin-bottom:10px;">家族に送るときの流れ</p>
     <div style="font-size:0.92rem; text-align:left; margin-bottom:14px; line-height:1.8;">
       ① 下のボタンでファイルを作り、LINEやメールで送ります<br>
-      ② 受け取った人は、ファイルをタップして開き、画面の<strong>共有ボタン（□に↑のマーク）</strong>から「<strong>"ファイル"に保存</strong>」を選びます<br>
+      ② 受け取った人は、ファイルをタップして開いて保存します<br>
+      <span style="display:block; padding-left:1em;">
+      <strong>iPhone</strong>：共有ボタン（□に↑のマーク）→「<strong>"ファイル"に保存</strong>」<br>
+      <strong>Android</strong>：保存（ダウンロード）ボタンを押す。端末の「ダウンロード」などに保存されます
+      </span>
       ③ かぞくカルテの「せってい」→「<strong>保存ファイルから戻す</strong>」で、保存したファイルを選びます<br>
-      <span style="color:var(--sub); font-size:0.85rem;">※受け取る人が、先にかぞくカルテをホーム画面に追加しておく必要があります。このアプリのアドレスもいっしょに送ってあげてください。<br>※ファイルを開くと文字が並んだ画面が出ますが、読まなくて大丈夫です。そのまま共有ボタンに進んでください。</span>
+      <span style="color:var(--sub); font-size:0.85rem;">※受け取る人が、先にかぞくカルテをホーム画面に追加しておく必要があります。このアプリのアドレスもいっしょに送ってあげてください。<br>※ファイルを開くと文字が並んだ画面が出ることがありますが、読まなくて大丈夫です。<br>※ボタンの見た目や保存先は機種によって少し異なります。</span>
     </div>
     <button type="button" class="btn primary" id="share-person-go">ファイルを作って送る</button>
     <button type="button" class="btn ghost" id="share-person-cancel">やめる</button>
@@ -293,7 +297,9 @@
   <div id="a2hs-note" class="form-note hidden" style="background:#FFF6E8; border:1px solid #F0D9B4; color:var(--ink);">
     <strong>📌 入力を始める前に大事なお願い</strong><br>
     記録は、開いた場所ごとに別々に保存されます。<strong>先に「ホーム画面に追加」をして、追加したアイコンから開いて</strong>入力を始めてください。ブラウザで入力した内容は、ホーム画面版には引き継がれません。<br>
-    <span style="color:var(--sub); font-size:0.85rem;">（iPhoneの場合：共有ボタン→「ホーム画面に追加」）</span>
+    <span style="color:var(--sub); font-size:0.85rem;">
+    <strong>iPhone</strong>：Safariの共有ボタン（□に↑）→「ホーム画面に追加」<br>
+    <strong>Android</strong>：Chromeのメニュー（右上の︙）→「ホーム画面に追加」または「アプリをインストール」</span>
     <button type="button" class="btn ghost" id="a2hs-dismiss" style="margin-top:10px; padding:10px;">ホーム画面に追加ずみ・このまま使う</button>
   </div>
   <div id="backup-note" class="form-note hidden" style="background:#FFF6E8; border:1px solid #F0D9B4; color:var(--ink);"></div>
@@ -331,7 +337,7 @@
       ・アレルギーの情報は、記録があっても医療者から口頭で再確認されます。<br>
       ・記録が外部に送信されることはありません。すべてこの端末の中だけに保存されます。
     </p>
-    <div class="version">かぞくカルテ v0.2.4（試作版）</div>
+    <div class="version">かぞくカルテ v0.2.6（試作版）</div>
   </div>
 </main>
 
@@ -355,7 +361,7 @@
   'use strict';
 
   var STORAGE_KEY = 'kazokukarute_data_v1';
-  var APP_VERSION = '0.2.4';
+  var APP_VERSION = '0.2.6';
   var RECENT_STALE_DAYS = 7;
 
   /* =====================================================
@@ -907,7 +913,7 @@
       opened = true;
     } catch (e) {}
     if (!opened) {
-      showStatus('印刷画面をひらけませんでした。Safariで開くかスクリーンショットをご利用ください');
+      showStatus('印刷画面をひらけませんでした。ブラウザで開くかスクリーンショットをご利用ください');
     }
   });
 
@@ -974,7 +980,7 @@
       save();
       renderNotices();
     } catch (e) {
-      alert('保存ファイルを作れませんでした。ブラウザ（Safariなど）で開いてお試しください。');
+      alert('保存ファイルを作れませんでした。ブラウザ（SafariやChromeなど）で開いてお試しください。');
     }
   });
   document.getElementById('btn-share-person').addEventListener('click', function () {
@@ -993,7 +999,7 @@
       // カレンダー画面が誤って開くのを防ぐため
       exportJSON(JSON.stringify(payload, null, 2), 'かぞくカルテ_' + pname + 'の情報.json');
     } catch (e) {
-      alert('ファイルを作れませんでした。ブラウザ（Safariなど）で開いてお試しください。');
+      alert('ファイルを作れませんでした。ブラウザ（SafariやChromeなど）で開いてお試しください。');
     }
   });
   document.getElementById('btn-restore').addEventListener('click', function () {
