@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#3D6E8F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="かぞくカルテ">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>かぞくカルテ - 親の医療・介護情報ノート</title>
+<style>
+  :root {
+    --bg: #F4F6F7;
+    --card: #FFFFFF;
+    --ink: #2E3A40;
+    --sub: #66757D;
+    --blue: #3D6E8F;
+    --blue-soft: #E7EFF4;
+    --line: #E1E7EA;
+    --red: #B5453C;
+    --red-soft: #FBEDEB;
+    --amber: #F2A65A;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { font-size: 16px; }
+  body {
+    font-family: "Hiragino Maru Gothic ProN", "BIZ UDPGothic", "Yu Gothic", "Noto Sans JP", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+    min-height: 100vh;
+  }
+  header.appbar {
+    background: var(--card);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 16px;
+    padding-top: calc(12px + env(safe-area-inset-top));
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  header.appbar h1 { font-size: 1.05rem; color: var(--blue); }
+  #person-select {
+    font-family: inherit; font-size: 0.95rem;
+    padding: 8px 10px;
+    border: 2px solid var(--line); border-radius: 10px;
+    background: var(--card); color: var(--ink);
+    max-width: 45%;
+  }
+  main { max-width: 520px; margin: 0 auto; padding: 16px; }
+
+  /* ---------- 記入フォーム ---------- */
+  details.sec {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  details.sec summary {
+    list-style: none;
+    padding: 16px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+  }
+  details.sec summary::-webkit-details-marker { display: none; }
+  details.sec summary .arrow { margin-left: auto; color: var(--sub); transition: transform 0.2s; }
+  details.sec[open] summary .arrow { transform: rotate(90deg); }
+  details.sec .sec-body { padding: 0 16px 16px; }
+  .fill-count { font-size: 0.75rem; color: var(--sub); font-weight: 400; }
+
+  .field { margin-bottom: 16px; }
+  .field > label { display: block; font-size: 0.9rem; color: var(--sub); margin-bottom: 6px; }
+  .field input[type=text], .field input[type=tel], .field input[type=date], .field textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 1.05rem;
+    padding: 12px;
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    color: var(--ink);
+  }
+  .field textarea { min-height: 72px; resize: vertical; }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--blue); }
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+  .choices button {
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 10px 14px;
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .choices button.sel {
+    border-color: var(--blue);
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-weight: 700;
+  }
+  .detail-input { margin-top: 8px; }
+  .form-note {
+    font-size: 0.85rem; color: var(--sub);
+    background: var(--blue-soft);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 14px;
+  }
+
+  /* ---------- サマリー ---------- */
+  .sum-header {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .sum-header .name { font-size: 1.5rem; font-weight: 700; }
+  .sum-header .meta { font-size: 0.95rem; color: var(--sub); }
+  .sum-block {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .sum-block h3 {
+    font-size: 0.95rem;
+    color: var(--blue);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+  }
+  .sum-block.alert { border: 2px solid var(--red); background: var(--red-soft); }
+  .sum-block.alert h3 { color: var(--red); border-color: #EAC7C3; }
+  .sum-item { font-size: 1.05rem; margin-bottom: 6px; }
+  .sum-item .k { color: var(--sub); font-size: 0.9rem; }
+  .sum-item .v { font-weight: 700; }
+  .sum-item .v.danger { color: var(--red); }
+  .sum-item a { color: var(--blue); font-weight: 700; }
+  .stale-warn {
+    font-size: 0.85rem;
+    color: #8A6D3B;
+    background: #FFF6E8;
+    border: 1px solid #F0D9B4;
+    border-radius: 10px;
+    padding: 8px 10px;
+    margin-top: 8px;
+  }
+  .sum-empty {
+    text-align: center;
+    color: var(--sub);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px 16px;
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 15px;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .btn.primary { background: var(--blue); color: #fff; }
+  .btn.ghost { background: var(--card); color: var(--blue); border: 2px solid var(--blue); }
+  .btn.danger { background: var(--card); color: var(--red); border: 2px solid var(--red); }
+
+  /* ---------- 設定 ---------- */
+  .section {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 16px;
+    border: 1px solid var(--line);
+  }
+  .section h2 { font-size: 1.05rem; color: var(--blue); margin-bottom: 10px; }
+  .section p { font-size: 0.92rem; color: var(--sub); margin-bottom: 10px; }
+  .disclaimer { font-size: 0.8rem; color: var(--sub); }
+  .version { text-align: center; font-size: 0.78rem; color: #A5B1B8; margin-top: 8px; }
+
+  /* ---------- タブ・モーダル ---------- */
+  nav.tabs {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--card);
+    border-top: 1px solid var(--line);
+    display: flex;
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 20;
+  }
+  nav.tabs button {
+    flex: 1;
+    font-family: inherit;
+    background: none; border: none;
+    padding: 10px 0 8px;
+    font-size: 0.78rem;
+    color: var(--sub);
+    cursor: pointer;
+  }
+  nav.tabs button .t-icon { display: block; font-size: 1.5rem; }
+  nav.tabs button.active { color: var(--blue); font-weight: 700; }
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(40,50,55,0.45);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    z-index: 50;
+  }
+  .modal { background: var(--card); border-radius: var(--radius); padding: 22px; width: 100%; max-width: 360px; }
+  .modal p { font-size: 1.05rem; margin-bottom: 16px; text-align: center; }
+  .hidden { display: none !important; }
+
+  @media print {
+    header.appbar, nav.tabs, .no-print { display: none !important; }
+    body { padding: 0; background: #fff; }
+    .sum-block, .sum-header { border-color: #999; break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <h1>📔 かぞくカルテ</h1>
+  <select id="person-select" class="no-print"></select>
+</header>
+
+<!-- ===== サマリー ===== -->
+<main id="view-summary">
+  <div id="summary-content"></div>
+  <button type="button" class="btn ghost no-print" id="btn-share-text">サマリーを文字でコピー・共有</button>
+  <div id="share-status" class="no-print" style="text-align:center; font-size:0.95rem; color:var(--blue); font-weight:700; min-height:1.6em; margin-top:6px;"></div>
+  <button type="button" class="btn ghost no-print" id="btn-print">印刷・PDFにする</button>
+  <p style="font-size:0.82rem; color:var(--sub); text-align:center; margin-top:10px;" class="no-print">
+    救急隊や病院のスタッフには、この画面をそのまま見せてください。<br>
+    印刷画面からPDFとして保存もできます。
+  </p>
+</main>
+
+<!-- コピーが使えない環境向けの予備画面 -->
+<div id="copy-overlay" class="modal-bg hidden">
+  <div class="modal">
+    <p style="font-size:0.95rem;">下の文章を長押し→「すべてを選択」→「コピー」してください。</p>
+    <textarea id="copy-textarea" readonly style="width:100%; min-height:220px; font-family:inherit; font-size:0.88rem; border:2px solid var(--line); border-radius:12px; padding:10px;"></textarea>
+    <button type="button" class="btn ghost" id="copy-close">とじる</button>
+  </div>
+</div>
+
+<!-- 印刷・PDFの手順案内 -->
+<div id="print-overlay" class="modal-bg hidden">
+  <div class="modal">
+    <p style="font-size:1.05rem; font-weight:700; margin-bottom:10px;">印刷・PDFのしかた</p>
+    <div style="font-size:0.92rem; text-align:left; margin-bottom:14px; line-height:1.8;">
+      ① 下のボタンを押すと、印刷の画面がひらきます<br>
+      ② プリンタがなくても大丈夫です<br>
+      <strong>iPhone</strong>：印刷画面の共有ボタンから「<strong>PDFとして保存</strong>」や「ファイルに保存」を選べます<br>
+      <strong>Android</strong>：プリンタ選択で「<strong>PDF形式で保存</strong>」を選べます<br>
+      <span style="color:var(--sub); font-size:0.85rem;">※画面がひらかない場合は、Safariなどのブラウザで開き直すか、スクリーンショットをご利用ください。</span>
+    </div>
+    <button type="button" class="btn primary" id="print-go">印刷の画面をひらく</button>
+    <button type="button" class="btn ghost" id="print-cancel">やめる</button>
+  </div>
+</div>
+
+<!-- ===== 記入 ===== -->
+<main id="view-edit" class="hidden">
+  <div id="a2hs-note" class="form-note hidden" style="background:#FFF6E8; border:1px solid #F0D9B4; color:var(--ink);">
+    <strong>📌 入力を始める前に大事なお願い</strong><br>
+    記録は、開いた場所ごとに別々に保存されます。<strong>先に「ホーム画面に追加」をして、追加したアイコンから開いて</strong>入力を始めてください。ブラウザで入力した内容は、ホーム画面版には引き継がれません。<br>
+    <span style="color:var(--sub); font-size:0.85rem;">（iPhoneの場合：共有ボタン→「ホーム画面に追加」）</span>
+    <button type="button" class="btn ghost" id="a2hs-dismiss" style="margin-top:10px; padding:10px;">ホーム画面に追加ずみ・このまま使う</button>
+  </div>
+  <div id="backup-note" class="form-note hidden" style="background:#FFF6E8; border:1px solid #F0D9B4; color:var(--ink);"></div>
+  <div class="form-note">
+    すべての項目は<strong>わかるところだけ</strong>で大丈夫です。空欄のままでも使えます。書いた内容は自動で保存されます。
+  </div>
+  <div id="form-root"></div>
+</main>
+
+<!-- ===== 設定 ===== -->
+<main id="view-settings" class="hidden">
+  <div class="section">
+    <h2>記録する人</h2>
+    <p>父・母など、複数の家族を分けて記録できます。名前は「記入」画面の基本情報で入力します。</p>
+    <button type="button" class="btn ghost" id="btn-add-person">＋ 記録する人を追加</button>
+    <button type="button" class="btn primary" id="btn-share-person">この人の情報をファイルで送る</button>
+    <p style="font-size:0.82rem;">LINEやメールなどで家族に送れます。受け取った家族が「保存ファイルから戻す」で読み込むと、自分の記録を消さずにこの人の情報が追加されます。</p>
+    <button type="button" class="btn danger" id="btn-del-person">いま選んでいる人を削除</button>
+  </div>
+
+  <div class="section">
+    <h2>記録のほぞん（バックアップ）</h2>
+    <p>記録は<strong>この端末の中だけ</strong>に保存されています。外部に送信されることはありません。スマホの故障や機種変更にそなえて、ときどき保存ファイルを作っておくと安心です。</p>
+    <button type="button" class="btn primary" id="btn-backup">保存ファイルを作る</button>
+    <button type="button" class="btn ghost" id="btn-restore">保存ファイルから戻す</button>
+    <input type="file" id="restore-file" accept=".json,application/json" class="hidden">
+    <p style="margin-top:10px; font-size:0.82rem;">戻すときは、いちばん新しい日付のファイルを選んでください。</p>
+  </div>
+
+  <div class="section">
+    <h2>このアプリについて</h2>
+    <p class="disclaimer">
+      ・このアプリは受診や救急時の情報伝達を補助するものであり、医療行為に代わるものではありません。<br>
+      ・内容はご家族の記入によるもので、正確性を保証するものではありません。治療の判断は必ず医療者が本人・家族に確認のうえ行います。<br>
+      ・アレルギーの情報は、記録があっても医療者から口頭で再確認されます。<br>
+      ・記録が外部に送信されることはありません。すべてこの端末の中だけに保存されます。
+    </p>
+    <div class="version">かぞくカルテ v0.2.1（試作版）</div>
+  </div>
+</main>
+
+<!-- ===== モーダル ===== -->
+<div id="modal-bg" class="modal-bg hidden">
+  <div class="modal">
+    <p id="modal-text"></p>
+    <button type="button" class="btn primary" id="modal-ok">はい</button>
+    <button type="button" class="btn ghost" id="modal-cancel">いいえ</button>
+  </div>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="summary" class="active"><span class="t-icon">🚑</span>サマリー</button>
+  <button data-tab="edit"><span class="t-icon">✏️</span>記入</button>
+  <button data-tab="settings"><span class="t-icon">⚙️</span>せってい</button>
+</nav>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'kazokukarute_data_v1';
+  var APP_VERSION = '0.2.1';
+  var RECENT_STALE_DAYS = 7;
+
+  /* =====================================================
+     項目定義（ここを編集すれば項目の追加・削除・変更ができる）
+     kind: text / tel / date / area / choice / multi
+     choice の detailWhen: その値が選ばれたとき詳細入力欄を出す
+     ===================================================== */
+  var SECTIONS = [
+    { id: 'basic', icon: '👤', title: '基本情報', fields: [
+      { id: 'name', kind: 'text', label: '名前' },
+      { id: 'birth', kind: 'text', label: '生年月日（例：昭和15年3月3日）' },
+      { id: 'height', kind: 'text', label: '身長（例：160cm）' },
+      { id: 'livingWith', kind: 'text', label: '同居している家族（例：長男夫婦と同居／一人暮らし）' },
+      { id: 'house', kind: 'area', label: '住まいの状況（例：2階建てで寝室は2階・階段あり）' }
+    ]},
+    { id: 'contact', icon: '📞', title: '緊急時のれんらく', fields: [
+      { id: 'keyName', kind: 'text', label: '緊急時、本人が連絡できないときに最初にかける人の名前' },
+      { id: 'keyRel', kind: 'text', label: 'その人の続柄（例：配偶者）' },
+      { id: 'keyTel', kind: 'tel', label: 'その人の電話番号' },
+      { id: 'contact2', kind: 'text', label: 'その他の緊急連絡先（名前・続柄・電話）' },
+      { id: 'doctor', kind: 'text', label: 'かかりつけ医（病院名・診療科）' },
+      { id: 'doctorTel', kind: 'tel', label: 'かかりつけ医の電話番号' },
+      { id: 'pharmacy', kind: 'text', label: 'かかりつけ薬局（名前・電話）' },
+      { id: 'careMgr', kind: 'text', label: 'ケアマネジャー・ケースワーカー（名前・所属）' },
+      { id: 'careMgrTel', kind: 'tel', label: 'ケアマネジャーの電話番号' },
+      { id: 'houkan', kind: 'text', label: '訪問看護ステーション（名前・電話）' }
+    ]},
+    { id: 'allergy', icon: '⚠️', title: 'アレルギー・くすり', fields: [
+      { id: 'allergyDrug', kind: 'choice', label: '薬のアレルギー', options: ['わからない', 'なし', 'あり'], detailWhen: 'あり', detailLabel: '薬の名前と症状' },
+      { id: 'allergyFood', kind: 'choice', label: '食べ物のアレルギー', options: ['わからない', 'なし', 'あり'], detailWhen: 'あり', detailLabel: '食べ物と症状' },
+      { id: 'allergyContrast', kind: 'choice', label: '造影剤のアレルギー（CT検査などで使う薬）', options: ['わからない', 'なし', 'あり'], detailWhen: 'あり', detailLabel: 'いつ・どんな症状だったか' },
+      { id: 'meds', kind: 'area', label: '飲んでいる薬（わかる範囲で）' },
+      { id: 'medsBook', kind: 'text', label: 'お薬手帳の保管場所（例：仏壇の引き出し）' },
+      { id: 'anticoag', kind: 'choice', label: '血をサラサラにする薬（ワーファリン・バイアスピリンなど）', options: ['わからない', 'なし', 'あり'], detailWhen: 'あり', detailLabel: '薬の名前' },
+      { id: 'sleepMed', kind: 'choice', label: '睡眠薬をふだん使っているか', options: ['わからない', 'なし', 'あり'], detailWhen: 'あり', detailLabel: '薬の名前' },
+      { id: 'insulin', kind: 'choice', label: 'インスリン注射', options: ['なし', 'あり'] },
+      { id: 'hot', kind: 'choice', label: '在宅酸素', options: ['なし', 'あり'] }
+    ]},
+    { id: 'body', icon: '🏥', title: 'からだの情報', fields: [
+      { id: 'history', kind: 'area', label: '既往歴（例：2015年 心筋梗塞／高血圧／糖尿病）' },
+      { id: 'surgery', kind: 'area', label: '手術歴・体内の金属（人工関節・ステント・クリップなど）' },
+      { id: 'pacemaker', kind: 'choice', label: 'ペースメーカー', options: ['なし', 'あり'], detailWhen: 'あり', detailLabel: 'ペースメーカー手帳の保管場所' },
+      { id: 'cognition', kind: 'choice', label: '認知機能・意思疎通', options: ['問題ない', 'もの忘れがある', '認知症の診断あり', '意思疎通がむずかしい'] },
+      { id: 'paralysis', kind: 'choice', label: 'まひ', options: ['なし', 'あり'], detailWhen: 'あり', detailLabel: 'どこに（例：右半身）' },
+      { id: 'vision', kind: 'choice', label: '目', options: ['問題ない', '見えにくい', 'ほとんど見えない'], detailWhen: ['見えにくい', 'ほとんど見えない'], detailLabel: 'どちら側か（右・左・両方）' },
+      { id: 'hearing', kind: 'choice', label: '耳', options: ['問題ない', '聞こえにくい', 'ほとんど聞こえない'], detailWhen: ['聞こえにくい', 'ほとんど聞こえない'], detailLabel: 'どちら側か（右・左・両方）' },
+      { id: 'aids', kind: 'multi', label: '使っているもの', options: ['眼鏡', '補聴器', '入れ歯'] },
+      { id: 'swallow', kind: 'choice', label: '飲み込み・食事の形態', options: ['ふつうに食べられる', 'むせることがある', 'きざみ・とろみが必要'] },
+      { id: 'mobility', kind: 'choice', label: '移動', options: ['自分で歩ける', '杖', '歩行器', '車椅子', 'ほぼ寝たきり'] },
+      { id: 'falls', kind: 'choice', label: '最近1年の転倒', options: ['なし', 'あり'], detailWhen: 'あり', detailLabel: 'いつ・どんなふうに' },
+      { id: 'adlMeal', kind: 'choice', label: '食事', options: ['自分でできる', '一部手伝いが必要', '全部手伝いが必要'] },
+      { id: 'adlToilet', kind: 'choice', label: 'トイレ', options: ['自分でできる', '一部手伝いが必要', '全部手伝いが必要'] },
+      { id: 'adlBath', kind: 'choice', label: '入浴', options: ['自分でできる', '一部手伝いが必要', '全部手伝いが必要'] },
+      { id: 'excretion', kind: 'multi', label: '排泄で使っているもの', options: ['オムツ・パッド', '尿の管（カテーテル）', 'ストーマ（人工肛門など）'] }
+    ]},
+    { id: 'care', icon: '🤝', title: '介護・そのほか', fields: [
+      { id: 'careLevel', kind: 'choice', label: '介護度', options: ['申請していない', '申請中', '要支援1', '要支援2', '要介護1', '要介護2', '要介護3', '要介護4', '要介護5'] },
+      { id: 'careServices', kind: 'area', label: '利用している介護サービス（例：デイサービス週2回）' },
+      { id: 'shougai', kind: 'choice', label: '障害者手帳', options: ['なし', 'あり'], detailWhen: 'あり', detailLabel: '種類・等級' },
+      { id: 'guardian', kind: 'choice', label: '成年後見人', options: ['なし', 'あり'], detailWhen: 'あり', detailLabel: '名前・連絡先' },
+      { id: 'religion', kind: 'text', label: '宗教上の配慮（輸血についてなど・あれば）' },
+      { id: 'acp', kind: 'choice', label: 'もしもの時の話し合い（任意。書ける範囲で）', options: ['記載しない', '家族で話し合ったことがある'], detailWhen: '家族で話し合ったことがある', detailLabel: '内容（例：本人は延命治療を望まないと話していた）' }
+    ]},
+    { id: 'habit', icon: '🚬', title: 'たばこ・お酒', fields: [
+      { id: 'smoke', kind: 'choice', label: 'たばこ', options: ['吸わない', 'やめた', '吸っている'], detailWhen: ['やめた', '吸っている'], detailLabel: '例：20歳から1日20本。5年前にやめた' },
+      { id: 'alcohol', kind: 'choice', label: 'お酒', options: ['飲まない', 'ときどき', '毎日'], detailWhen: ['ときどき', '毎日'], detailLabel: '例：ビール500mlを1本' }
+    ]},
+    { id: 'recent', icon: '📝', title: '最近の様子（日々変わる情報）', dated: true, fields: [
+      { id: 'weight', kind: 'text', label: '体重（例：52kg）' },
+      { id: 'appetite', kind: 'choice', label: '食欲', options: ['ある', '少ない', 'ほとんど食べない'] },
+      { id: 'urine', kind: 'text', label: '排尿の回数（1日およそ何回）' },
+      { id: 'stoolLast', kind: 'date', label: '最後に便が出た日' },
+      { id: 'sleep', kind: 'choice', label: '睡眠', options: ['よく眠れている', '眠れないことがある'] },
+      { id: 'recentMemo', kind: 'area', label: 'そのほか気になること' }
+    ]}
+  ];
+
+  var state = null;
+
+  /* ---------- ユーティリティ ---------- */
+  function todayKey() {
+    var d = new Date();
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function fmtDate(key) {
+    if (!key) return '';
+    var p = key.split('-');
+    return Number(p[1]) + '月' + Number(p[2]) + '日';
+  }
+  function daysAgo(key) {
+    if (!key) return null;
+    var p = key.split('-');
+    var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    return Math.floor((new Date() - d) / 86400000);
+  }
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function isStandalone() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+      || window.navigator.standalone === true;
+  }
+
+  /* ---------- データ ---------- */
+  function newPerson() {
+    return { id: 'p' + Date.now(), data: {} };
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      var d = JSON.parse(raw);
+      if (!d || !d.persons || !d.persons.length) return null;
+      return d;
+    } catch (e) { return null; }
+  }
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      alert('保存に失敗しました。端末の空き容量をご確認ください。');
+    }
+  }
+  function person() {
+    for (var i = 0; i < state.persons.length; i++) {
+      if (state.persons[i].id === state.activeId) return state.persons[i];
+    }
+    state.activeId = state.persons[0].id;
+    return state.persons[0];
+  }
+  function get(fid) { return person().data[fid] || ''; }
+  function set(fid, val, sectionId) {
+    person().data[fid] = val;
+    person().data._updated = todayKey();
+    var sec = SECTIONS.filter(function (s) { return s.id === sectionId; })[0];
+    if (sec && sec.dated) person().data._recentDate = todayKey();
+    save();
+  }
+  function personLabel(p, idx) {
+    return (p.data.name && p.data.name.trim()) || '名前未記入' + (idx > 0 ? '(' + (idx + 1) + ')' : '');
+  }
+
+  /* ---------- モーダル ---------- */
+  var modalBg = document.getElementById('modal-bg');
+  var modalCallback = null;
+  function confirmModal(text, onOk) {
+    document.getElementById('modal-text').textContent = text;
+    modalCallback = onOk;
+    modalBg.classList.remove('hidden');
+  }
+  document.getElementById('modal-ok').addEventListener('click', function () {
+    modalBg.classList.add('hidden');
+    if (modalCallback) modalCallback();
+    modalCallback = null;
+  });
+  document.getElementById('modal-cancel').addEventListener('click', function () {
+    modalBg.classList.add('hidden');
+    modalCallback = null;
+  });
+
+  /* ---------- 人の切り替え ---------- */
+  var personSelect = document.getElementById('person-select');
+  function renderPersonSelect() {
+    person(); // activeIdが壊れている場合はここで先頭の人に復旧される
+    personSelect.innerHTML = '';
+    state.persons.forEach(function (p, i) {
+      var opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = personLabel(p, i);
+      personSelect.appendChild(opt);
+    });
+    personSelect.value = state.activeId;
+  }
+  personSelect.addEventListener('change', function () {
+    state.activeId = personSelect.value;
+    save();
+    renderForm();
+    renderSummary();
+  });
+
+  /* ---------- タブ ---------- */
+  var views = {
+    summary: document.getElementById('view-summary'),
+    edit: document.getElementById('view-edit'),
+    settings: document.getElementById('view-settings')
+  };
+  document.getElementById('tabs').addEventListener('click', function (e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    var tab = btn.getAttribute('data-tab');
+    var buttons = document.querySelectorAll('#tabs button');
+    for (var i = 0; i < buttons.length; i++) buttons[i].classList.remove('active');
+    btn.classList.add('active');
+    for (var key in views) views[key].classList.add('hidden');
+    views[tab].classList.remove('hidden');
+    if (tab === 'summary') renderSummary();
+    if (tab === 'edit') { renderNotices(); updateFillCounts(); }
+  });
+
+  /* ---------- 記入フォーム（項目定義から自動生成） ---------- */
+  function renderForm() {
+    var root = document.getElementById('form-root');
+    root.innerHTML = '';
+    SECTIONS.forEach(function (sec) {
+      var det = document.createElement('details');
+      det.className = 'sec';
+      det.id = 'sec-' + sec.id;
+      var sm = document.createElement('summary');
+      sm.innerHTML = sec.icon + ' ' + sec.title +
+        ' <span class="fill-count" id="fc-' + sec.id + '"></span><span class="arrow">▶</span>';
+      det.appendChild(sm);
+      var body = document.createElement('div');
+      body.className = 'sec-body';
+
+      sec.fields.forEach(function (f) {
+        var wrap = document.createElement('div');
+        wrap.className = 'field';
+        var lab = document.createElement('label');
+        lab.textContent = f.label;
+        wrap.appendChild(lab);
+
+        if (f.kind === 'text' || f.kind === 'tel' || f.kind === 'date') {
+          var input = document.createElement('input');
+          input.type = f.kind === 'tel' ? 'tel' : f.kind;
+          input.value = get(f.id);
+          input.addEventListener('input', function () {
+            set(f.id, input.value, sec.id);
+            if (f.id === 'name') renderPersonSelect();
+            updateFillCounts();
+          });
+          wrap.appendChild(input);
+        } else if (f.kind === 'area') {
+          var ta = document.createElement('textarea');
+          ta.value = get(f.id);
+          ta.addEventListener('input', function () {
+            set(f.id, ta.value, sec.id);
+            updateFillCounts();
+          });
+          wrap.appendChild(ta);
+        } else if (f.kind === 'choice' || f.kind === 'multi') {
+          var box = document.createElement('div');
+          box.className = 'choices';
+          var detailInput = null;
+          if (f.detailWhen) {
+            detailInput = document.createElement('input');
+            detailInput.type = 'text';
+            detailInput.className = 'detail-input';
+            detailInput.placeholder = f.detailLabel || '';
+            detailInput.value = get(f.id + 'Detail');
+            detailInput.addEventListener('input', function () {
+              set(f.id + 'Detail', detailInput.value, sec.id);
+            });
+          }
+          function detailVisible(val) {
+            if (!f.detailWhen) return false;
+            var arr = Array.isArray(f.detailWhen) ? f.detailWhen : [f.detailWhen];
+            return arr.indexOf(val) !== -1;
+          }
+          f.options.forEach(function (op) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = op;
+            function sync() {
+              if (f.kind === 'choice') {
+                b.classList.toggle('sel', get(f.id) === op);
+              } else {
+                b.classList.toggle('sel', (get(f.id) || []).indexOf(op) !== -1);
+              }
+            }
+            b.addEventListener('click', function () {
+              if (f.kind === 'choice') {
+                var cur = get(f.id);
+                var nv = cur === op ? '' : op; // 同じものを押すと取り消し
+                set(f.id, nv, sec.id);
+                var bs = box.querySelectorAll('button');
+                for (var i = 0; i < bs.length; i++) bs[i].classList.remove('sel');
+                if (nv) b.classList.add('sel');
+                if (detailInput) detailInput.classList.toggle('hidden', !detailVisible(nv));
+              } else {
+                var arr = (get(f.id) || []).slice();
+                var idx = arr.indexOf(op);
+                if (idx === -1) arr.push(op); else arr.splice(idx, 1);
+                set(f.id, arr, sec.id);
+                b.classList.toggle('sel', idx === -1);
+              }
+              updateFillCounts();
+            });
+            sync();
+            box.appendChild(b);
+          });
+          wrap.appendChild(box);
+          if (detailInput) {
+            detailInput.classList.toggle('hidden', !detailVisible(get(f.id)));
+            wrap.appendChild(detailInput);
+          }
+        }
+        body.appendChild(wrap);
+      });
+
+      if (sec.dated) {
+        var dn = document.createElement('p');
+        dn.style.cssText = 'font-size:0.82rem; color:var(--sub);';
+        dn.textContent = 'この欄は書いた日付が自動でサマリーに表示されます。受診の前に見直すのがおすすめです。';
+        body.appendChild(dn);
+      }
+      det.appendChild(body);
+      root.appendChild(det);
+    });
+    updateFillCounts();
+  }
+
+  function fieldFilled(f) {
+    var v = get(f.id);
+    if (f.kind === 'multi') return (v || []).length > 0;
+    return v !== '' && v != null;
+  }
+  function updateFillCounts() {
+    SECTIONS.forEach(function (sec) {
+      var n = sec.fields.filter(fieldFilled).length;
+      var el = document.getElementById('fc-' + sec.id);
+      if (el) el.textContent = n > 0 ? '（' + n + '/' + sec.fields.length + ' 記入）' : '';
+    });
+  }
+
+  /* ---------- サマリー ---------- */
+  function choiceVal(fid) {
+    var v = get(fid);
+    if (!v) return null;
+    var d = get(fid + 'Detail');
+    return d ? v + '：' + d : v;
+  }
+  function item(label, value, danger) {
+    if (!value) return '';
+    return '<div class="sum-item"><span class="k">' + esc(label) + '：</span>' +
+      '<span class="v' + (danger ? ' danger' : '') + '">' + esc(value) + '</span></div>';
+  }
+  function telItem(label, name, tel) {
+    if (!name && !tel) return '';
+    var t = tel ? ' <a href="tel:' + esc(tel.replace(/[^0-9+]/g, '')) + '">' + esc(tel) + '</a>' : '';
+    return '<div class="sum-item"><span class="k">' + esc(label) + '：</span>' +
+      '<span class="v">' + esc(name || '') + '</span>' + t + '</div>';
+  }
+  function block(title, html, alert) {
+    if (!html) return '';
+    return '<div class="sum-block' + (alert ? ' alert' : '') + '"><h3>' + esc(title) + '</h3>' + html + '</div>';
+  }
+
+  function renderSummary() {
+    var root = document.getElementById('summary-content');
+    var d = person().data;
+    var anyFilled = Object.keys(d).some(function (k) {
+      return k.charAt(0) !== '_' && d[k] && d[k].length !== 0;
+    });
+    if (!anyFilled) {
+      root.innerHTML = '<div class="sum-empty">まだ記入がありません。<br>下の「✏️ 記入」から、わかるところだけ書いてみてください。<br>ここに救急・受診用のまとめが表示されます。</div>';
+      return;
+    }
+
+    var html = '';
+    // ヘッダー
+    html += '<div class="sum-header"><div class="name">' + esc(d.name || '（名前未記入）') + '</div>' +
+      '<div class="meta">' + (d.birth ? '生年月日：' + esc(d.birth) : '') +
+      (d.height ? '　身長 ' + esc(d.height) : '') +
+      (d._updated ? '　最終更新：' + fmtDate(d._updated) : '') + '</div></div>';
+
+    // 最重要（赤枠）
+    var danger = '';
+    danger += item('薬アレルギー', choiceVal('allergyDrug'), get('allergyDrug') === 'あり');
+    danger += item('食物アレルギー', choiceVal('allergyFood'), get('allergyFood') === 'あり');
+    danger += item('造影剤アレルギー', choiceVal('allergyContrast'), get('allergyContrast') === 'あり');
+    danger += item('血をサラサラにする薬', choiceVal('anticoag'), get('anticoag') === 'あり');
+    danger += item('ペースメーカー', choiceVal('pacemaker'), get('pacemaker') === 'あり');
+    if (danger) danger += '<div style="font-size:0.8rem; color:var(--sub); margin-top:6px;">※アレルギーは記録があっても、必ず口頭でもご確認ください。</div>';
+    html += block('⚠️ 最重要', danger, true);
+
+    // くすり
+    var meds = '';
+    meds += item('飲んでいる薬', get('meds'));
+    meds += item('睡眠薬', choiceVal('sleepMed'));
+    meds += item('インスリン注射', choiceVal('insulin'));
+    meds += item('在宅酸素', choiceVal('hot'));
+    meds += item('お薬手帳の場所', get('medsBook'));
+    html += block('💊 くすり', meds);
+
+    // 認知・意思疎通
+    html += block('🧠 認知機能・意思疎通', item('状態', choiceVal('cognition')));
+
+    // 連絡先
+    var ct = '';
+    ct += telItem('最初にかける人（キーパーソン）', (get('keyName') + (get('keyRel') ? '（' + get('keyRel') + '）' : '')), get('keyTel'));
+    ct += item('その他の緊急連絡先', get('contact2'));
+    ct += telItem('かかりつけ医', get('doctor'), get('doctorTel'));
+    ct += item('かかりつけ薬局', get('pharmacy'));
+    ct += telItem('ケアマネジャー', get('careMgr'), get('careMgrTel'));
+    ct += item('訪問看護', get('houkan'));
+    html += block('📞 緊急時のれんらく', ct);
+
+    // 病歴
+    var hx = '';
+    hx += item('既往歴', get('history'));
+    hx += item('手術歴・体内の金属', get('surgery'));
+    html += block('🏥 病歴', hx);
+
+    // からだ
+    var body = '';
+    body += item('まひ', choiceVal('paralysis'));
+    body += item('目', choiceVal('vision'));
+    body += item('耳', choiceVal('hearing'));
+    body += item('使っているもの', (get('aids') || []).join('・'));
+    body += item('飲み込み・食形態', choiceVal('swallow'));
+    body += item('移動', choiceVal('mobility'));
+    body += item('最近1年の転倒', choiceVal('falls'));
+    var adl = [];
+    if (get('adlMeal')) adl.push('食事：' + get('adlMeal'));
+    if (get('adlToilet')) adl.push('トイレ：' + get('adlToilet'));
+    if (get('adlBath')) adl.push('入浴：' + get('adlBath'));
+    body += item('日常生活', adl.join('　'));
+    body += item('排泄で使っているもの', (get('excretion') || []).join('・'));
+    html += block('🧍 からだの状態', body);
+
+    // 介護・そのほか
+    var care = '';
+    care += item('介護度', choiceVal('careLevel'));
+    care += item('介護サービス', get('careServices'));
+    care += item('障害者手帳', choiceVal('shougai'));
+    care += item('成年後見人', choiceVal('guardian'));
+    care += item('宗教上の配慮', get('religion'));
+    if (get('acp') === '家族で話し合ったことがある') {
+      care += item('もしもの時の話し合い', choiceVal('acp'));
+    }
+    html += block('🤝 介護・そのほか', care);
+
+    // 嗜好品
+    var habit = '';
+    habit += item('たばこ', choiceVal('smoke'));
+    habit += item('お酒', choiceVal('alcohol'));
+    html += block('🚬 たばこ・お酒', habit);
+
+    // 最近の様子（日付つき）
+    var recent = '';
+    recent += item('体重', get('weight'));
+    recent += item('食欲', choiceVal('appetite'));
+    recent += item('排尿の回数（1日）', get('urine'));
+    recent += item('最後に便が出た日', fmtDate(get('stoolLast')));
+    recent += item('睡眠', choiceVal('sleep'));
+    recent += item('気になること', get('recentMemo'));
+    if (recent) {
+      var rd = person().data._recentDate;
+      var ago = daysAgo(rd);
+      var head = rd ? '（' + fmtDate(rd) + ' 記入）' : '';
+      recent = '<div style="font-size:0.85rem; color:var(--sub); margin-bottom:6px;">' + head + '</div>' + recent;
+      if (ago !== null && ago > RECENT_STALE_DAYS) {
+        recent += '<div class="stale-warn">この欄は' + ago + '日前の記入です。いまの状態と違う可能性があります。</div>';
+      }
+      html += block('📝 最近の様子', recent);
+    }
+
+    // 生活
+    var life = '';
+    life += item('同居している家族', get('livingWith'));
+    life += item('住まいの状況', get('house'));
+    html += block('🏠 生活', life);
+
+    root.innerHTML = html;
+  }
+
+  /* ---------- サマリーの文字コピー・共有 ---------- */
+  function summaryText() {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = document.getElementById('summary-content').innerHTML;
+    var blocks = tmp.querySelectorAll('.sum-header, .sum-block');
+    var lines = ['【かぞくカルテ 受診用サマリー】'];
+    for (var i = 0; i < blocks.length; i++) {
+      var b = blocks[i];
+      var h = b.querySelector('h3');
+      if (h) lines.push('', '■ ' + h.textContent);
+      var items = b.querySelectorAll('.sum-item, .name, .meta');
+      for (var j = 0; j < items.length; j++) {
+        var t = items[j].textContent.replace(/\s+/g, ' ').trim();
+        if (t) lines.push(t);
+      }
+    }
+    return lines.join('\n');
+  }
+  var statusTimer = null;
+  function showStatus(msg) {
+    var el = document.getElementById('share-status');
+    el.textContent = msg;
+    if (statusTimer) clearTimeout(statusTimer);
+    statusTimer = setTimeout(function () { el.textContent = ''; }, 4000);
+  }
+  function showCopyOverlay(text) {
+    var ta = document.getElementById('copy-textarea');
+    ta.value = text;
+    document.getElementById('copy-overlay').classList.remove('hidden');
+    try { ta.focus(); ta.select(); } catch (e) {}
+  }
+  document.getElementById('copy-close').addEventListener('click', function () {
+    document.getElementById('copy-overlay').classList.add('hidden');
+  });
+  function legacyCopy(text) {
+    try {
+      if (typeof document.execCommand !== 'function') return false;
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed; left:-9999px; top:0;';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
+  function copyText(text) {
+    function done() { showStatus('✓ コピーしました。メモやメールに貼り付けられます'); }
+    function fail() { showCopyOverlay(text); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () {
+        if (legacyCopy(text)) done(); else fail();
+      });
+    } else if (legacyCopy(text)) { done(); } else { fail(); }
+  }
+  document.getElementById('btn-share-text').addEventListener('click', function () {
+    var text = summaryText();
+    if (navigator.share) {
+      navigator.share({ text: text }).then(function () {
+        showStatus('✓ 共有しました');
+      }).catch(function (err) {
+        // ユーザーが共有をやめた場合は何もしない。それ以外の失敗はコピーに切り替え
+        if (err && err.name === 'AbortError') return;
+        copyText(text);
+      });
+    } else {
+      copyText(text);
+    }
+  });
+  document.getElementById('btn-print').addEventListener('click', function () {
+    document.getElementById('print-overlay').classList.remove('hidden');
+  });
+  document.getElementById('print-cancel').addEventListener('click', function () {
+    document.getElementById('print-overlay').classList.add('hidden');
+  });
+  document.getElementById('print-go').addEventListener('click', function () {
+    document.getElementById('print-overlay').classList.add('hidden');
+    var opened = false;
+    try {
+      window.print();
+      opened = true;
+    } catch (e) {}
+    if (!opened) {
+      showStatus('印刷画面をひらけませんでした。Safariで開くかスクリーンショットをご利用ください');
+    }
+  });
+
+  /* ---------- 設定：人の追加・削除 ---------- */
+  document.getElementById('btn-add-person').addEventListener('click', function () {
+    if (state.persons.length >= 6) {
+      alert('記録できるのは6人までです。');
+      return;
+    }
+    var p = newPerson();
+    state.persons.push(p);
+    state.activeId = p.id;
+    save();
+    renderPersonSelect();
+    renderForm();
+    renderSummary();
+    alert('新しい人を追加しました。「記入」画面の基本情報から名前を入れてください。');
+  });
+  document.getElementById('btn-del-person').addEventListener('click', function () {
+    if (state.persons.length <= 1) {
+      alert('最後の1人は削除できません。');
+      return;
+    }
+    var p = person();
+    confirmModal('「' + (p.data.name || '名前未記入') + '」の記録をすべて削除しますか？この操作は元に戻せません。', function () {
+      state.persons = state.persons.filter(function (x) { return x.id !== p.id; });
+      state.activeId = state.persons[0].id;
+      save();
+      renderPersonSelect();
+      renderForm();
+      renderSummary();
+    });
+  });
+
+  /* ---------- ファイルの書き出し（共通） ---------- */
+  function exportJSON(json, fileName) {
+    if (isStandalone() && navigator.canShare) {
+      try {
+        var file = new File([json], fileName, { type: 'application/json' });
+        if (navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: fileName }).catch(function () {});
+          return;
+        }
+      } catch (e) {}
+    }
+    var blob = new Blob([json], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /* ---------- バックアップ・復元・家族への共有 ---------- */
+  document.getElementById('btn-backup').addEventListener('click', function () {
+    try {
+      exportJSON(JSON.stringify(state, null, 2), 'かぞくカルテ_バックアップ_' + todayKey() + '.json');
+      state.lastBackup = todayKey();
+      save();
+      renderNotices();
+    } catch (e) {
+      alert('保存ファイルを作れませんでした。ブラウザ（Safariなど）で開いてお試しください。');
+    }
+  });
+  document.getElementById('btn-share-person').addEventListener('click', function () {
+    var p = person();
+    var pname = (p.data.name && p.data.name.trim()) || '名前未記入';
+    var payload = { kazokuShare: true, appVersion: APP_VERSION, person: p };
+    exportJSON(JSON.stringify(payload, null, 2), 'かぞくカルテ_' + pname + 'の情報_' + todayKey() + '.json');
+  });
+  document.getElementById('btn-restore').addEventListener('click', function () {
+    document.getElementById('restore-file').click();
+  });
+  document.getElementById('restore-file').addEventListener('change', function (e) {
+    var file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var data = JSON.parse(reader.result);
+
+        // 家族から受け取った「1人分の情報ファイル」
+        if (data && data.kazokuShare && data.person && data.person.data) {
+          var pname = (data.person.data.name && data.person.data.name.trim()) || '名前未記入';
+
+          // 同じ人がすでにいるか（過去に同じファイル元から読み込んだ人＝同じid、または同じ名前）
+          var existing = null;
+          for (var i = 0; i < state.persons.length; i++) {
+            var q = state.persons[i];
+            var sameName = pname !== '名前未記入' && (q.data.name || '').trim() === pname;
+            if (q.id === data.person.id || sameName) { existing = q; break; }
+          }
+
+          if (existing) {
+            confirmModal('「' + pname + '」さんの記録がすでにあります。受け取った新しい内容で上書きしますか？（この端末に入っている今の内容は消えます）', function () {
+              existing.data = data.person.data;
+              state.activeId = existing.id;
+              save();
+              renderPersonSelect();
+              renderForm();
+              renderSummary();
+              alert('「' + pname + '」さんの情報を新しい内容に更新しました。');
+            });
+            return;
+          }
+
+          if (state.persons.length >= 6) {
+            alert('記録できるのは6人までです。使っていない人を削除してから読み込んでください。');
+            return;
+          }
+          confirmModal('「' + pname + '」さんの情報を追加で読み込みますか？いまの記録はそのまま残ります。', function () {
+            var np = data.person;
+            // 送り元のidを保持する（次に同じ人のファイルを受け取ったとき上書き判定に使う）
+            var collision = state.persons.some(function (q) { return q.id === np.id; });
+            if (!np.id || collision) np.id = 'p' + Date.now();
+            state.persons.push(np);
+            state.activeId = np.id;
+            save();
+            renderPersonSelect();
+            renderForm();
+            renderSummary();
+            alert('「' + pname + '」さんの情報を追加しました。');
+          });
+          return;
+        }
+
+        // 通常のバックアップファイル → 全体を置きかえる
+        if (!data || !data.persons || !data.persons.length) throw new Error('bad');
+        confirmModal('いまの記録を、選んだファイルの内容に置きかえます。よろしいですか？', function () {
+          state = data;
+          save();
+          renderPersonSelect();
+          renderForm();
+          renderSummary();
+          alert('記録を戻しました。');
+        });
+      } catch (err) {
+        alert('このファイルは読み込めませんでした。「かぞくカルテ」で作ったファイルを選んでください。');
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  /* ---------- 案内表示（ホーム画面追加・バックアップ促し） ---------- */
+  function hasAnyData() {
+    return state.persons.some(function (p) {
+      return Object.keys(p.data).some(function (k) {
+        return k.charAt(0) !== '_' && p.data[k] && p.data[k].length !== 0;
+      });
+    });
+  }
+  function renderNotices() {
+    // ホーム画面追加の案内：ブラウザで開いていて、まだ「追加ずみ」を押していないとき
+    var a2hs = document.getElementById('a2hs-note');
+    a2hs.classList.toggle('hidden', isStandalone() || !!state.a2hsDismissed);
+    // バックアップ促し:記入があるのに30日以上保存ファイルを作っていないとき
+    var bn = document.getElementById('backup-note');
+    var ago = state.lastBackup ? daysAgo(state.lastBackup) : null;
+    var need = hasAnyData() && (ago === null || ago > 30);
+    if (need) {
+      bn.innerHTML = '💾 ' + (ago === null
+        ? 'まだ保存ファイルを作っていません。'
+        : '最後に保存ファイルを作ってから' + ago + '日たちました。') +
+        'スマホの故障にそなえて、「せってい」から保存ファイルを作っておくと安心です。';
+    }
+    bn.classList.toggle('hidden', !need);
+  }
+  document.getElementById('a2hs-dismiss').addEventListener('click', function () {
+    state.a2hsDismissed = true;
+    save();
+    renderNotices();
+  });
+
+  /* ---------- 起動 ---------- */
+  state = load();
+  if (!state) {
+    state = { appVersion: APP_VERSION, persons: [newPerson()], activeId: null };
+    state.activeId = state.persons[0].id;
+    save();
+  }
+  renderPersonSelect();
+  renderForm();
+  renderSummary();
+  renderNotices();
+
+  /* アプリに戻ってきたとき、日付が変わっていたら表示を新しくする（記入日の警告など） */
+  var lastRenderedDay = todayKey();
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible') return;
+    if (todayKey() !== lastRenderedDay) {
+      lastRenderedDay = todayKey();
+      if (!views.summary.classList.contains('hidden')) renderSummary();
+      renderNotices();
+    }
+  });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
