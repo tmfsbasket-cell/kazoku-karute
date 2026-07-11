@@ -279,9 +279,9 @@
     <p style="font-size:1.05rem; font-weight:700; margin-bottom:10px;">家族に送るときの流れ</p>
     <div style="font-size:0.92rem; text-align:left; margin-bottom:14px; line-height:1.8;">
       ① 下のボタンでファイルを作り、LINEやメールで送ります<br>
-      ② 受け取った人は、ファイルを<strong>開かずに</strong>「共有ボタン→ファイルに保存」で保存します<br>
+      ② 受け取った人は、ファイルをタップして開き、画面の<strong>共有ボタン（□に↑のマーク）</strong>から「<strong>"ファイル"に保存</strong>」を選びます<br>
       ③ かぞくカルテの「せってい」→「<strong>保存ファイルから戻す</strong>」で、保存したファイルを選びます<br>
-      <span style="color:var(--sub); font-size:0.85rem;">※受け取る人が、先にかぞくカルテをホーム画面に追加しておく必要があります。このアプリのアドレスもいっしょに送ってあげてください。<br>※ファイルをタップすると文字が並んだ画面が出ることがありますが、読む必要はありません。閉じて「ファイルに保存」に進んでください。</span>
+      <span style="color:var(--sub); font-size:0.85rem;">※受け取る人が、先にかぞくカルテをホーム画面に追加しておく必要があります。このアプリのアドレスもいっしょに送ってあげてください。<br>※ファイルを開くと文字が並んだ画面が出ますが、読まなくて大丈夫です。そのまま共有ボタンに進んでください。</span>
     </div>
     <button type="button" class="btn primary" id="share-person-go">ファイルを作って送る</button>
     <button type="button" class="btn ghost" id="share-person-cancel">やめる</button>
@@ -331,7 +331,7 @@
       ・アレルギーの情報は、記録があっても医療者から口頭で再確認されます。<br>
       ・記録が外部に送信されることはありません。すべてこの端末の中だけに保存されます。
     </p>
-    <div class="version">かぞくカルテ v0.2.3（試作版）</div>
+    <div class="version">かぞくカルテ v0.2.4（試作版）</div>
   </div>
 </main>
 
@@ -355,7 +355,7 @@
   'use strict';
 
   var STORAGE_KEY = 'kazokukarute_data_v1';
-  var APP_VERSION = '0.2.3';
+  var APP_VERSION = '0.2.4';
   var RECENT_STALE_DAYS = 7;
 
   /* =====================================================
