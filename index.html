@@ -337,7 +337,7 @@
       ・アレルギーの情報は、記録があっても医療者から口頭で再確認されます。<br>
       ・記録が外部に送信されることはありません。すべてこの端末の中だけに保存されます。
     </p>
-    <div class="version">かぞくカルテ v0.2.6（試作版）</div>
+    <div class="version">かぞくカルテ v0.3.0（試作版）</div>
   </div>
 </main>
 
@@ -361,7 +361,7 @@
   'use strict';
 
   var STORAGE_KEY = 'kazokukarute_data_v1';
-  var APP_VERSION = '0.2.6';
+  var APP_VERSION = '0.3.0';
   var RECENT_STALE_DAYS = 7;
 
   /* =====================================================
@@ -403,6 +403,7 @@
     { id: 'body', icon: '🏥', title: 'からだの情報', fields: [
       { id: 'history', kind: 'area', label: '既往歴（例：2015年 心筋梗塞／高血圧／糖尿病）' },
       { id: 'surgery', kind: 'area', label: '手術歴・体内の金属（人工関節・ステント・クリップなど）' },
+      { id: 'labFindings', kind: 'area', label: '検査で指摘されていること（例：肝臓の数値で要再検査と言われている）' },
       { id: 'pacemaker', kind: 'choice', label: 'ペースメーカー', options: ['なし', 'あり'], detailWhen: 'あり', detailLabel: 'ペースメーカー手帳の保管場所' },
       { id: 'cognition', kind: 'choice', label: '認知機能・意思疎通', options: ['問題ない', 'もの忘れがある', '認知症の診断あり', '意思疎通がむずかしい'] },
       { id: 'paralysis', kind: 'choice', label: 'まひ', options: ['なし', 'あり'], detailWhen: 'あり', detailLabel: 'どこに（例：右半身）' },
@@ -763,6 +764,7 @@
     var hx = '';
     hx += item('既往歴', get('history'));
     hx += item('手術歴・体内の金属', get('surgery'));
+    hx += item('検査で指摘されていること', get('labFindings'));
     html += block('🏥 病歴', hx);
 
     // からだ
@@ -1027,6 +1029,28 @@
           }
 
           if (existing) {
+            // けんこうカルテから書き出された「一部の項目だけ」のファイルは、
+            // 入っている項目だけを置きかえる（この端末で記入した緊急連絡先などは残す）。
+            // ※ファイルに入っていない項目は前のままなので、けんこうカルテ側で
+            //   消した内容までは消えない点に注意（その場合はこの画面で直す）
+            if (data.exportedFrom) {
+              confirmModal('「' + pname + '」さんの記録がすでにあります。受け取ったファイルに入っている項目（基本情報・薬・アレルギーなど）だけを新しい内容に置きかえます。この端末で記入したほかの項目（緊急連絡先など）はそのまま残ります。よろしいですか？', function () {
+                var incoming = data.person.data;
+                for (var key in incoming) {
+                  if (Object.prototype.hasOwnProperty.call(incoming, key)) {
+                    existing.data[key] = incoming[key];
+                  }
+                }
+                state.activeId = existing.id;
+                save();
+                renderPersonSelect();
+                renderForm();
+                renderSummary();
+                alert('「' + pname + '」さんの情報を新しい内容に更新しました。');
+              });
+              return;
+            }
+            // かぞくカルテ同士の共有ファイル（全項目入り）は従来どおり丸ごと置きかえる
             confirmModal('「' + pname + '」さんの記録がすでにあります。受け取った新しい内容で上書きしますか？（この端末に入っている今の内容は消えます）', function () {
               existing.data = data.person.data;
               state.activeId = existing.id;
