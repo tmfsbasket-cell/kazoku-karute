@@ -1,6 +1,6 @@
 /* かぞくカルテ Service Worker
    更新のたびに CACHE_NAME のバージョン番号を必ず変えること */
-var CACHE_NAME = 'kazoku-v0.3.0';
+var CACHE_NAME = 'kazoku-v0.3.1';
 var ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (event) {
