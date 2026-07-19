@@ -325,7 +325,7 @@
     <p>記録は<strong>この端末の中だけ</strong>に保存されています。外部に送信されることはありません。スマホの故障や機種変更にそなえて、ときどき保存ファイルを作っておくと安心です。</p>
     <button type="button" class="btn primary" id="btn-backup">保存ファイルを作る</button>
     <button type="button" class="btn ghost" id="btn-restore">保存ファイルから戻す</button>
-    <input type="file" id="restore-file" class="hidden">
+    <input type="file" id="restore-file" accept="application/json,.json" class="hidden">
     <p style="margin-top:10px; font-size:0.82rem;">戻すときは、いちばん新しい日付のファイルを選んでください。</p>
   </div>
 
@@ -337,7 +337,7 @@
       ・アレルギーの情報は、記録があっても医療者から口頭で再確認されます。<br>
       ・記録が外部に送信されることはありません。すべてこの端末の中だけに保存されます。
     </p>
-    <div class="version">かぞくカルテ v0.3.0（試作版）</div>
+    <div class="version">かぞくカルテ v0.3.2（試作版）</div>
   </div>
 </main>
 
@@ -361,7 +361,7 @@
   'use strict';
 
   var STORAGE_KEY = 'kazokukarute_data_v1';
-  var APP_VERSION = '0.3.0';
+  var APP_VERSION = '0.3.2';
   var RECENT_STALE_DAYS = 7;
 
   /* =====================================================
